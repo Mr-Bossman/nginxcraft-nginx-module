@@ -1,10 +1,15 @@
-
+// SPDX-License-Identifier: GPL-2.0+
 /*
- * Copyright (C) Roman Arutyunyan
- * Copyright (C) Nginx, Inc.
+ * ngx_stream_parse_server_name_module.c
+ *
+ * This module is a simple example of how to parse the server name from a
+ * stream session. It is based on the ngx_stream_ssl_preread_module.c module
+ * that is included with NGINX. This module is intended to be used as a
+ * reference for developers who are looking to create their own stream
+ * modules.
+ *
+ * Copyright (C) 2024-2025 Jesse Taube <Mr.Bossman075@gmail.com>
  */
-
-#include <nginx.h>
 
 #include <ngx_config.h>
 #include <ngx_core.h>
@@ -30,6 +35,9 @@ static ngx_int_t ngx_stream_parse_server_name_parse(
     ngx_stream_parse_server_name_ctx_t *ctx, ngx_buf_t *buf);
 static ngx_int_t ngx_stream_parse_server_name_handler(ngx_stream_session_t *s);
 static ngx_int_t ngx_stream_parse_server_name_init(ngx_conf_t *cf);
+static ngx_int_t ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf);
+static ngx_int_t ngx_stream_servername_host_variable(
+    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data);
 
 static ngx_command_t  ngx_stream_parse_server_name_commands[] = {
 
@@ -45,23 +53,23 @@ static ngx_command_t  ngx_stream_parse_server_name_commands[] = {
 
 
 static ngx_stream_module_t  ngx_stream_parse_server_name_module_ctx = {
-    NULL,                                  /* preconfiguration */
-    ngx_stream_parse_server_name_init,                                  /* postconfiguration */
+    ngx_stream_parse_server_name_add_variables,     /* preconfiguration */
+    ngx_stream_parse_server_name_init,              /* postconfiguration */
 
-    NULL,                                  /* create main configuration */
-    NULL,                                  /* init main configuration */
+    NULL,                                           /* create main configuration */
+    NULL,                                           /* init main configuration */
 
-    ngx_stream_parse_server_name_create_srv_conf,     /* create server configuration */
-    NULL                                   /* merge server configuration */
+    ngx_stream_parse_server_name_create_srv_conf,   /* create server configuration */
+    NULL                                            /* merge server configuration */
 };
 
 
 ngx_module_t  ngx_stream_parse_server_name_module = {
     NGX_MODULE_V1,
-    &ngx_stream_parse_server_name_module_ctx,         /* module context */
-    ngx_stream_parse_server_name_commands,            /* module directives */
-    NGX_STREAM_MODULE,                     /* module type */
-    NULL,                                  /* init master */
+    &ngx_stream_parse_server_name_module_ctx,           /* module context */
+    ngx_stream_parse_server_name_commands,              /* module directives */
+    NGX_STREAM_MODULE,                                  /* module type */
+    NULL,                                               /* init master */
     NULL,                                  /* init module */
     NULL,                                  /* init process */
     NULL,                                  /* init thread */
@@ -69,6 +77,14 @@ ngx_module_t  ngx_stream_parse_server_name_module = {
     NULL,                                  /* exit process */
     NULL,                                  /* exit master */
     NGX_MODULE_V1_PADDING
+};
+
+static ngx_stream_variable_t  ngx_stream_parse_server_name_vars[] = {
+
+    { ngx_string("servername_host"), NULL,
+      ngx_stream_servername_host_variable, 0, 0, 0 },
+
+      ngx_stream_null_variable
 };
 
 
@@ -116,18 +132,17 @@ static ngx_int_t ngx_stream_parse_server_name_parse(
     if (url == NULL) {
         return NGX_AGAIN;
     }
-    while (url < last && *url != '\r' && i < 256) {
+    while (url < last && url[i] != '\r' && i < 256) {
         data[i] = url[i];
         i++;
     }
 
-    size_t size = ngx_strnlen(data, 256);
-    ctx->host.data = ngx_pnalloc(ctx->pool, size);
+    ctx->host.data = ngx_pnalloc(ctx->pool, i);
     if (ctx->host.data == NULL) {
         return NGX_ERROR;
     }
-    (void)ngx_cpymem(ctx->host.data, data, size);
-    ctx->host.len = size;
+    (void)ngx_cpymem(ctx->host.data, data, i);
+    ctx->host.len = i;
 
     (void)ngx_hex_dump(data, p, ngx_min(len*2, 127));
     ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream parse_server_name: %s", data);
@@ -222,6 +237,46 @@ ngx_stream_parse_server_name_servername(ngx_stream_session_t *s,
     s->srv_conf = cscf->ctx->srv_conf;
 
     ngx_set_connection_log(c, cscf->error_log);
+
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_stream_servername_host_variable(ngx_stream_session_t *s,
+    ngx_variable_value_t *v, uintptr_t data)
+{
+    ngx_stream_parse_server_name_ctx_t  *ctx;
+
+    ctx = ngx_stream_get_module_ctx(s, ngx_stream_parse_server_name_module);
+
+    if (ctx == NULL) {
+        v->not_found = 1;
+        return NGX_OK;
+    }
+
+    v->valid = 1;
+    v->no_cacheable = 0;
+    v->not_found = 0;
+    v->len = ctx->host.len;
+    v->data = ctx->host.data;
+
+    return NGX_OK;
+}
+
+static ngx_int_t
+ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf)
+{
+    ngx_stream_variable_t  *var, *v;
+
+    for (v = ngx_stream_parse_server_name_vars; v->name.len; v++) {
+        var = ngx_stream_add_variable(cf, &v->name, v->flags);
+        if (var == NULL) {
+            return NGX_ERROR;
+        }
+
+        var->get_handler = v->get_handler;
+        var->data = v->data;
+    }
 
     return NGX_OK;
 }

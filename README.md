@@ -1,0 +1,76 @@
+Name
+====
+
+**parse_server_name-nginx-module** - Something
+
+*This module is not distributed with the Nginx source.* See [the installation instructions](#installation).
+
+Table of Contents
+=================
+
+* [Name](#name)
+* [Synopsis](#synopsis)
+* [Description](#description)
+* [Variables](#variables)
+    * [$servername_host](#servername_host)
+* [Installation](#installation)
+* [Source Repository](#source-repository)
+* [TODO](#todo)
+
+
+Synopsis
+========
+
+[Back to TOC](#table-of-contents)
+
+Description
+===========
+
+
+[Back to TOC](#table-of-contents)
+
+Content Handler Directives
+==========================
+
+
+Installation
+============
+
+Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
+the version 1.25.5, and then build the source with this module:
+
+```bash
+
+ $ wget 'http://nginx.org/download/nginx-1.25.5.tar.gz'
+ $ tar -xzvf nginx-1.25.5.tar.gz
+ $ cd nginx-1.25.5/
+
+ # Here we assume you would install you nginx under /usr/local/nginx/.
+ $ ./configure --prefix=/usr/local/nginx/ \
+     --add-module=/path/to/parse_server_name-nginx-module
+
+ $ make -j$(nproc)
+ $ make install
+```
+
+Starting from NGINX 1.9.11, you can also compile this module as a dynamic module, by using the `--add-dynamic-module=PATH` option instead of `--add-module=PATH` on the
+`./configure` command line above. And then you can explicitly load the module in your `nginx.conf` via the [load_module](http://nginx.org/en/docs/ngx_core_module.html#load_module)
+directive, for example,
+
+```nginx
+load_module /path/to/modules/nngx_stream_parse_server_name_module.so;
+```
+
+[Back to TOC](#table-of-contents)
+
+Source Repository
+=================
+
+Available on github at [Mr-Bossman/parse_server_name-nginx-module](https://github.com/Mr-Bossman/parse_server_name-nginx-module).
+
+[Back to TOC](#table-of-contents)
+
+TODO
+====
+
+* Fix my life
