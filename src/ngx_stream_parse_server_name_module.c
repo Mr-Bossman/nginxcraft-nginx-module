@@ -15,24 +15,11 @@
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
-
-typedef struct {
-    ngx_flag_t      enabled;
-} ngx_stream_parse_server_name_srv_conf_t;
-
-
-typedef struct {
-    ngx_str_t       host;
-    ngx_log_t      *log;
-    ngx_pool_t     *pool;
-} ngx_stream_parse_server_name_ctx_t;
-
+#include "ngx_stream_parse_server_name_module.h"
 
 static void *ngx_stream_parse_server_name_create_srv_conf(ngx_conf_t *cf);
 static ngx_int_t ngx_stream_parse_server_name_servername(ngx_stream_session_t *s,
     ngx_str_t *servername);
-static ngx_int_t ngx_stream_parse_server_name_parse(
-    ngx_stream_parse_server_name_ctx_t *ctx, ngx_buf_t *buf);
 static ngx_int_t ngx_stream_parse_server_name_handler(ngx_stream_session_t *s);
 static ngx_int_t ngx_stream_parse_server_name_init(ngx_conf_t *cf);
 static ngx_int_t ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf);
@@ -102,53 +89,6 @@ ngx_stream_parse_server_name_create_srv_conf(ngx_conf_t *cf)
 
     return conf;
 }
-static u_char *get_http_host(u_char *data, size_t len)
-{
-    while (len > 0) {
-        len--;
-        if(*data++ == '\n') {
-            break;
-        }
-    }
-    if (len > 6 && ngx_strncmp(data, (u_char*)"Host: ", 6) == 0) {
-        data += 6;
-        return data;
-    }
-    return NULL;
-}
-
-static ngx_int_t ngx_stream_parse_server_name_parse(
-    ngx_stream_parse_server_name_ctx_t *ctx, ngx_buf_t *buf)
-{
-    u_char *p, *last, *url;
-    size_t len, i = 0;
-    p = buf->pos;
-    last = buf->last;
-    len = p - last;
-
-    u_char data[256];
-    memset(data, 0, 256);
-    url = get_http_host(p, len);
-    if (url == NULL) {
-        return NGX_AGAIN;
-    }
-    while (url < last && url[i] != '\r' && i < 256) {
-        data[i] = url[i];
-        i++;
-    }
-
-    ctx->host.data = ngx_pnalloc(ctx->pool, i);
-    if (ctx->host.data == NULL) {
-        return NGX_ERROR;
-    }
-    (void)ngx_cpymem(ctx->host.data, data, i);
-    ctx->host.len = i;
-
-    (void)ngx_hex_dump(data, p, ngx_min(len*2, 127));
-    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream parse_server_name: %s", data);
-// sed -n 's/.*stream parse_server_name: //gp'  /usr/local/nginx/logs/debug.log |  xxd -r -p | hexdump -C
-    return NGX_OK;
-}
 
 static ngx_int_t
 ngx_stream_parse_server_name_handler(ngx_stream_session_t *s)
@@ -187,11 +127,9 @@ ngx_stream_parse_server_name_handler(ngx_stream_session_t *s)
 
     if (rc == NGX_OK) {
         return ngx_stream_parse_server_name_servername(s, &ctx->host);
-    } else {
-    return rc;
     }
 
-    return NGX_AGAIN;
+    return rc;
 }
 
 static ngx_int_t
@@ -278,7 +216,7 @@ ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf)
         var->data = v->data;
     }
 
-    return NGX_OK;
+    return submodule_parse_server_name_add_variables(cf);
 }
 
 static ngx_int_t
