@@ -11,11 +11,39 @@
  * Copyright (C) 2024-2025 Jesse Taube <Mr.Bossman075@gmail.com>
  */
 
+#include <stdbool.h>
+
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
 #include "ngx_stream_parse_server_name_module.h"
+
+#define SEGMENT_BITS 0x7F
+#define CONTINUE_BIT 0x80
+
+typedef struct VarInt VarInt;
+struct VarInt {
+    int32_t value;
+    size_t length;
+    bool valid;
+};
+
+typedef struct mc_string mc_string;
+struct mc_string {
+    u_char* data;
+    size_t data_length;
+    bool valid;
+};
+
+typedef struct minecraft_packet minecraft_packet;
+struct minecraft_packet {
+    VarInt length;
+    VarInt packetId;
+    u_char* data;
+    size_t data_length;
+    bool valid;
+};
 
 ngx_int_t
 submodule_parse_server_name_add_variables(ngx_conf_t *cf)
@@ -24,50 +52,138 @@ submodule_parse_server_name_add_variables(ngx_conf_t *cf)
     return NGX_OK;
 }
 
-static u_char *get_http_host(u_char *data, size_t len)
+static VarInt readVarInt(u_char* buffer, size_t length)
 {
-    while (len > 0) {
-        len--;
-        if(*data++ == '\n') {
-            break;
+    VarInt ret = {0, 0, true};
+    size_t ind = 0;
+
+    while (ind < 32 && ind < length) {
+        ret.value |= (buffer[ind] & SEGMENT_BITS) << (ind*7);
+
+        if ((buffer[ind] & CONTINUE_BIT) == 0) break;
+
+        ind++;
+
+        if ((ind*7) >= 32) {
+            ret.valid = false;
+            ret.value = -1;
+            // Value is too large to be a varint
+            return ret;
         }
     }
-    if (len > 6 && ngx_strncmp(data, (u_char*)"Host: ", 6) == 0) {
-        data += 6;
-        return data;
+    ret.length = ind + 1;
+    return ret;
+}
+
+static mc_string read_mc_string(u_char* buffer, size_t length) {
+    mc_string ret = {NULL, 0, true};
+
+    VarInt stringLength = readVarInt(buffer, length);
+    if (!stringLength.valid) {
+        ret.valid = false;
+        return ret;
     }
-    return NULL;
+    if (stringLength.length > length) {
+        ret.valid = false;
+        return ret;
+    }
+    ret.data = buffer + stringLength.length;
+    ret.data_length = stringLength.value;
+    return ret;
+}
+
+int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet)
+{
+    size_t Length_ID_sz = 0;
+    size_t Packet_ID_sz = 0;
+    packet->length = readVarInt(buffer, length);
+    Length_ID_sz = packet->length.length;
+    if (!packet->length.valid) {
+        packet->valid = false;
+        return -1;
+    }
+    if(Length_ID_sz > length) {
+        packet->valid = false;
+        return -1;
+    }
+    length -= Length_ID_sz;
+    packet->packetId = readVarInt(buffer + Length_ID_sz, length);
+    Packet_ID_sz = packet->packetId.length;
+    if (!packet->packetId.valid) {
+        packet->valid = false;
+        return -1;
+    }
+    if(Packet_ID_sz > length) {
+        packet->valid = false;
+        return -1;
+    }
+    length -= Packet_ID_sz;
+    packet->data = buffer + Length_ID_sz + Packet_ID_sz;
+    packet->data_length = length;
+    return 0;
+}
+
+int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
+{
+    u_char *data = packet->data;
+    size_t data_length = packet->data_length;
+    size_t protocolVersion_sz = 0;
+    size_t serv_Address_sz = 0;
+    VarInt protocolVersion;
+
+    if (packet->packetId.value != 0) {
+        return -1;
+    }
+
+    protocolVersion = readVarInt(data, data_length);
+    protocolVersion_sz = protocolVersion.length;
+    if (!protocolVersion.valid) {
+        return -1;
+    }
+    if (protocolVersion_sz > data_length) {
+        return -1;
+    }
+    data_length -= protocolVersion_sz;
+    *serv_Address = read_mc_string(data + protocolVersion_sz, data_length);
+    serv_Address_sz = serv_Address->data_length;
+    if (!serv_Address->valid) {
+        return -1;
+    }
+    if (serv_Address_sz > 255) {
+        serv_Address->valid = false;
+        return -1;
+    }
+    return 0;
 }
 
 ngx_int_t ngx_stream_parse_server_name_parse(
     ngx_stream_parse_server_name_ctx_t *ctx, ngx_buf_t *buf)
 {
-    u_char *p, *last, *url;
-    size_t len, i = 0;
-    p = buf->pos;
-    last = buf->last;
-    len = p - last;
+    u_char *p = buf->pos;
+    size_t len = p - buf->last;;
+    minecraft_packet packet;
+    mc_string serv_Address;
+    int ret;
 
-    u_char data[256];
-    memset(data, 0, 256);
-    url = get_http_host(p, len);
-    if (url == NULL) {
-        return NGX_AGAIN;
-    }
-    while (url < last && url[i] != '\r' && i < 256) {
-        data[i] = url[i];
-        i++;
+    ret = parse_packet(p, len, &packet);
+    if (ret != 0) {
+        return NGX_ERROR;
     }
 
-    ctx->host.data = ngx_pnalloc(ctx->pool, i);
+    ret = parse_handshake(&packet, &serv_Address);
+    if (ret != 0) {
+        return NGX_ERROR;
+    }
+
+    ctx->host.data = ngx_pnalloc(ctx->pool, serv_Address.data_length + 1);
     if (ctx->host.data == NULL) {
         return NGX_ERROR;
     }
-    (void)ngx_cpymem(ctx->host.data, data, i);
-    ctx->host.len = i;
+    ctx->host.data[serv_Address.data_length] = '\0';
+    ctx->host.len = serv_Address.data_length;
+    (void)ngx_cpymem(ctx->host.data, serv_Address.data, serv_Address.data_length);
 
-    (void)ngx_hex_dump(data, p, ngx_min(len*2, 127));
-    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream parse_server_name: %s", data);
+    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream parse_server_name: %s",  ctx->host.data);
 // sed -n 's/.*stream parse_server_name: //gp'  /usr/local/nginx/logs/debug.log |  xxd -r -p | hexdump -C
     return NGX_OK;
 }
