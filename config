@@ -1,0 +1,23 @@
+ngx_addon_name=ngx_stream_parse_server_name_module
+
+ECHO_SRCS="                                                                 \
+        $ngx_addon_dir/src/ngx_stream_parse_server_name_module.c            \
+        "
+
+ECHO_DEPS="                                                                 \
+        "
+
+if [ -n "$ngx_module_link" ]; then
+    ngx_module_type=STREAM
+    ngx_module_name=$ngx_addon_name
+    ngx_module_incs=
+    ngx_module_deps="$ECHO_DEPS"
+    ngx_module_srcs="$ECHO_SRCS"
+    ngx_module_libs=
+
+    . auto/module
+else
+    NGX_STREAM_MODULE="$NGX_STREAM_MODULE $ngx_addon_name"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ECHO_SRCS"
+    NGX_ADDON_DEPS="$NGX_ADDON_DEPS $ECHO_DEPS"
+fi
