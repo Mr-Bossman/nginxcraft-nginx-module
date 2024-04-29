@@ -2,11 +2,7 @@
 /*
  * parse_minecraft.c
  *
- * This module is a simple example of how to parse the server name from a
- * stream session. It is based on the ngx_stream_ssl_preread_module.c module
- * that is included with NGINX. This module is intended to be used as a
- * reference for developers who are looking to create their own stream
- * modules.
+ * Functions for parsing Minecraft packets.
  *
  * Copyright (C) 2024-2025 Jesse Taube <Mr.Bossman075@gmail.com>
  */
@@ -73,7 +69,7 @@ ngx_int_t ngx_stream_nginxcraft_parse(
 
     ret = parse_handshake(&packet, &serv_Address);
     if (ret != NGX_OK) {
-        return NGX_ERROR;
+        return NGX_DECLINED;
     }
 
     ctx->host.data = ngx_pnalloc(ctx->pool, serv_Address.data_length + 1);

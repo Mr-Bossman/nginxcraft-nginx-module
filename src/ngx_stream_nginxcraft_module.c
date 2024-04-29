@@ -104,7 +104,7 @@ ngx_stream_nginxcraft_handler(ngx_stream_session_t *s)
 
     sscf = ngx_stream_get_module_srv_conf(s, ngx_stream_nginxcraft_module);
 
-    if (!sscf->enabled) {
+    if (sscf->enabled != 1) {
         return NGX_DECLINED;
     }
 
@@ -127,6 +127,10 @@ ngx_stream_nginxcraft_handler(ngx_stream_session_t *s)
 
     if (rc == NGX_OK) {
         return ngx_stream_nginxcraft_servername(s, &ctx->host);
+    }
+
+    if (rc == NGX_DECLINED) {
+        return NGX_OK;
     }
 
     return rc;
