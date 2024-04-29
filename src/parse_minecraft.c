@@ -67,12 +67,12 @@ ngx_int_t ngx_stream_nginxcraft_parse(
     int ret;
 
     ret = parse_packet(p, len, &packet);
-    if (ret != 0) {
-        return NGX_ERROR;
+    if (ret != NGX_OK) {
+        return NGX_DECLINED;
     }
 
     ret = parse_handshake(&packet, &serv_Address);
-    if (ret != 0) {
+    if (ret != NGX_OK) {
         return NGX_ERROR;
     }
 
@@ -85,7 +85,7 @@ ngx_int_t ngx_stream_nginxcraft_parse(
     (void)ngx_cpymem(ctx->host.data, serv_Address.data, serv_Address.data_length);
 
     ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream nginxcraft: %s",  ctx->host.data);
-// sed -n 's/.*stream nginxcraft: //gp'  /usr/local/nginx/logs/debug.log |  xxd -r -p | hexdump -C
+
     return NGX_OK;
 }
 
@@ -98,7 +98,8 @@ static VarInt readVarInt(u_char* buffer, size_t length)
     while (ind < 32 && ind < length) {
         ret.value |= (buffer[ind] & SEGMENT_BITS) << (ind*7);
 
-        if ((buffer[ind] & CONTINUE_BIT) == 0) break;
+        if ((buffer[ind] & CONTINUE_BIT) == 0)
+		break;
 
         ind++;
 
@@ -138,27 +139,27 @@ static int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet)
     Length_ID_sz = packet->length.length;
     if (!packet->length.valid) {
         packet->valid = false;
-        return -1;
+        return NGX_ERROR;
     }
     if(Length_ID_sz > length) {
         packet->valid = false;
-        return -1;
+        return NGX_ERROR;
     }
     length -= Length_ID_sz;
     packet->packetId = readVarInt(buffer + Length_ID_sz, length);
     Packet_ID_sz = packet->packetId.length;
     if (!packet->packetId.valid) {
         packet->valid = false;
-        return -1;
+        return NGX_ERROR;
     }
     if(Packet_ID_sz > length) {
         packet->valid = false;
-        return -1;
+        return NGX_ERROR;
     }
     length -= Packet_ID_sz;
     packet->data = buffer + Length_ID_sz + Packet_ID_sz;
     packet->data_length = length;
-    return 0;
+    return NGX_OK;
 }
 
 static int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
@@ -170,26 +171,26 @@ static int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
     VarInt protocolVersion;
 
     if (packet->packetId.value != 0) {
-        return -1;
+        return NGX_ERROR;
     }
 
     protocolVersion = readVarInt(data, data_length);
     protocolVersion_sz = protocolVersion.length;
     if (!protocolVersion.valid) {
-        return -1;
+        return NGX_ERROR;
     }
     if (protocolVersion_sz > data_length) {
-        return -1;
+        return NGX_ERROR;
     }
     data_length -= protocolVersion_sz;
     *serv_Address = read_mc_string(data + protocolVersion_sz, data_length);
     serv_Address_sz = serv_Address->data_length;
     if (!serv_Address->valid) {
-        return -1;
+        return NGX_ERROR;
     }
     if (serv_Address_sz > 255) {
         serv_Address->valid = false;
-        return -1;
+        return NGX_ERROR;
     }
-    return 0;
+    return NGX_OK;
 }
