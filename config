@@ -1,12 +1,12 @@
-ngx_addon_name=ngx_stream_parse_server_name_module
+ngx_addon_name=ngx_stream_nginxcraft_module
 
 ECHO_SRCS="                                                                 \
-        $ngx_addon_dir/src/ngx_stream_parse_server_name_module.c            \
-        $ngx_addon_dir/src/submodules.c            \
+        $ngx_addon_dir/src/ngx_stream_nginxcraft_module.c                   \
+        $ngx_addon_dir/src/parse_minecraft.c                                \
         "
 
 ECHO_DEPS="                                                                 \
-        $ngx_addon_dir/src/ngx_stream_parse_server_name_module.h            \
+        $ngx_addon_dir/src/ngx_stream_nginxcraft_module.h                   \
         "
 
 if [ -n "$ngx_module_link" ]; then

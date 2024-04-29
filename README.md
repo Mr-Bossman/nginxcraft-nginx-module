@@ -1,7 +1,7 @@
 Name
 ====
 
-**parse_server_name-nginx-module** - Something
+**nginxcraft-nginx-module** - Something
 
 *This module is not distributed with the Nginx source.* See [the installation instructions](#installation).
 
@@ -47,7 +47,7 @@ the version 1.25.5, and then build the source with this module:
 
  # Here we assume you would install you nginx under /usr/local/nginx/.
  $ ./configure --prefix=/usr/local/nginx/ \
-     --add-module=/path/to/parse_server_name-nginx-module
+     --add-module=/path/to/nginxcraft-nginx-module
 
  $ make -j$(nproc)
  $ make install
@@ -58,7 +58,7 @@ Starting from NGINX 1.9.11, you can also compile this module as a dynamic module
 directive, for example,
 
 ```nginx
-load_module /path/to/modules/nngx_stream_parse_server_name_module.so;
+load_module /path/to/modules/nngx_stream_nginxcraft_module.so;
 ```
 
 [Back to TOC](#table-of-contents)
@@ -66,7 +66,7 @@ load_module /path/to/modules/nngx_stream_parse_server_name_module.so;
 Source Repository
 =================
 
-Available on github at [Mr-Bossman/parse_server_name-nginx-module](https://github.com/Mr-Bossman/parse_server_name-nginx-module).
+Available on github at [Mr-Bossman/nginxcraft-nginx-module](https://github.com/Mr-Bossman/nginxcraft-nginx-module).
 
 [Back to TOC](#table-of-contents)
 

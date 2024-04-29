@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * ngx_stream_parse_server_name_module.c
+ * ngx_stream_nginxcraft_module.c
  *
  * This module is a simple example of how to parse the server name from a
  * stream session. It is based on the ngx_stream_ssl_preread_module.c module
@@ -15,48 +15,48 @@
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
-#include "ngx_stream_parse_server_name_module.h"
+#include "ngx_stream_nginxcraft_module.h"
 
-static void *ngx_stream_parse_server_name_create_srv_conf(ngx_conf_t *cf);
-static ngx_int_t ngx_stream_parse_server_name_servername(ngx_stream_session_t *s,
+static void *ngx_stream_nginxcraft_create_srv_conf(ngx_conf_t *cf);
+static ngx_int_t ngx_stream_nginxcraft_servername(ngx_stream_session_t *s,
     ngx_str_t *servername);
-static ngx_int_t ngx_stream_parse_server_name_handler(ngx_stream_session_t *s);
-static ngx_int_t ngx_stream_parse_server_name_init(ngx_conf_t *cf);
-static ngx_int_t ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf);
+static ngx_int_t ngx_stream_nginxcraft_handler(ngx_stream_session_t *s);
+static ngx_int_t ngx_stream_nginxcraft_init(ngx_conf_t *cf);
+static ngx_int_t ngx_stream_nginxcraft_add_variables(ngx_conf_t *cf);
 static ngx_int_t ngx_stream_servername_host_variable(
     ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data);
 
-static ngx_command_t  ngx_stream_parse_server_name_commands[] = {
+static ngx_command_t  ngx_stream_nginxcraft_commands[] = {
 
-    { ngx_string("parse_server_name"),
+    { ngx_string("nginxcraft"),
       NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF|NGX_CONF_FLAG,
       ngx_conf_set_flag_slot,
       NGX_STREAM_SRV_CONF_OFFSET,
-      offsetof(ngx_stream_parse_server_name_srv_conf_t, enabled),
+      offsetof(ngx_stream_nginxcraft_srv_conf_t, enabled),
       NULL },
 
       ngx_null_command
 };
 
 
-static ngx_stream_module_t  ngx_stream_parse_server_name_module_ctx = {
-    ngx_stream_parse_server_name_add_variables,     /* preconfiguration */
-    ngx_stream_parse_server_name_init,              /* postconfiguration */
+static ngx_stream_module_t  ngx_stream_nginxcraft_module_ctx = {
+    ngx_stream_nginxcraft_add_variables,     /* preconfiguration */
+    ngx_stream_nginxcraft_init,              /* postconfiguration */
 
-    NULL,                                           /* create main configuration */
-    NULL,                                           /* init main configuration */
+    NULL,                                    /* create main configuration */
+    NULL,                                    /* init main configuration */
 
-    ngx_stream_parse_server_name_create_srv_conf,   /* create server configuration */
-    NULL                                            /* merge server configuration */
+    ngx_stream_nginxcraft_create_srv_conf,   /* create server configuration */
+    NULL                                     /* merge server configuration */
 };
 
 
-ngx_module_t  ngx_stream_parse_server_name_module = {
+ngx_module_t  ngx_stream_nginxcraft_module = {
     NGX_MODULE_V1,
-    &ngx_stream_parse_server_name_module_ctx,           /* module context */
-    ngx_stream_parse_server_name_commands,              /* module directives */
-    NGX_STREAM_MODULE,                                  /* module type */
-    NULL,                                               /* init master */
+    &ngx_stream_nginxcraft_module_ctx,     /* module context */
+    ngx_stream_nginxcraft_commands,        /* module directives */
+    NGX_STREAM_MODULE,                     /* module type */
+    NULL,                                  /* init master */
     NULL,                                  /* init module */
     NULL,                                  /* init process */
     NULL,                                  /* init thread */
@@ -66,9 +66,9 @@ ngx_module_t  ngx_stream_parse_server_name_module = {
     NGX_MODULE_V1_PADDING
 };
 
-static ngx_stream_variable_t  ngx_stream_parse_server_name_vars[] = {
+static ngx_stream_variable_t  ngx_stream_nginxcraft_vars[] = {
 
-    { ngx_string("servername_host"), NULL,
+    { ngx_string("minecraft_server"), NULL,
       ngx_stream_servername_host_variable, 0, 0, 0 },
 
       ngx_stream_null_variable
@@ -76,11 +76,11 @@ static ngx_stream_variable_t  ngx_stream_parse_server_name_vars[] = {
 
 
 static void *
-ngx_stream_parse_server_name_create_srv_conf(ngx_conf_t *cf)
+ngx_stream_nginxcraft_create_srv_conf(ngx_conf_t *cf)
 {
-    ngx_stream_parse_server_name_srv_conf_t  *conf;
+    ngx_stream_nginxcraft_srv_conf_t  *conf;
 
-    conf = ngx_pcalloc(cf->pool, sizeof(ngx_stream_parse_server_name_srv_conf_t));
+    conf = ngx_pcalloc(cf->pool, sizeof(ngx_stream_nginxcraft_srv_conf_t));
     if (conf == NULL) {
         return NULL;
     }
@@ -91,18 +91,18 @@ ngx_stream_parse_server_name_create_srv_conf(ngx_conf_t *cf)
 }
 
 static ngx_int_t
-ngx_stream_parse_server_name_handler(ngx_stream_session_t *s)
+ngx_stream_nginxcraft_handler(ngx_stream_session_t *s)
 {
     ngx_int_t                                   rc;
     ngx_connection_t                           *c;
-    ngx_stream_parse_server_name_ctx_t         *ctx;
-    ngx_stream_parse_server_name_srv_conf_t    *sscf;
+    ngx_stream_nginxcraft_ctx_t         *ctx;
+    ngx_stream_nginxcraft_srv_conf_t    *sscf;
 
     c = s->connection;
 
-    ngx_log_debug0(NGX_LOG_DEBUG_STREAM, c->log, 0, "parse_server_name preread handler");
+    ngx_log_debug0(NGX_LOG_DEBUG_STREAM, c->log, 0, "nginxcraft handler");
 
-    sscf = ngx_stream_get_module_srv_conf(s, ngx_stream_parse_server_name_module);
+    sscf = ngx_stream_get_module_srv_conf(s, ngx_stream_nginxcraft_module);
 
     if (!sscf->enabled) {
         return NGX_DECLINED;
@@ -112,28 +112,28 @@ ngx_stream_parse_server_name_handler(ngx_stream_session_t *s)
         return NGX_AGAIN;
     }
 
-    ctx = ngx_stream_get_module_ctx(s, ngx_stream_parse_server_name_module);
+    ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
     if (ctx == NULL) {
-        ctx = ngx_pcalloc(c->pool, sizeof(ngx_stream_parse_server_name_ctx_t));
+        ctx = ngx_pcalloc(c->pool, sizeof(ngx_stream_nginxcraft_ctx_t));
         if (ctx == NULL) {
             return NGX_ERROR;
         }
         ctx->pool = c->pool;
         ctx->log = c->log;
-        ngx_stream_set_ctx(s, ctx, ngx_stream_parse_server_name_module);
+        ngx_stream_set_ctx(s, ctx, ngx_stream_nginxcraft_module);
     }
 
-    rc = ngx_stream_parse_server_name_parse(ctx, c->buffer);
+    rc = ngx_stream_nginxcraft_parse(ctx, c->buffer);
 
     if (rc == NGX_OK) {
-        return ngx_stream_parse_server_name_servername(s, &ctx->host);
+        return ngx_stream_nginxcraft_servername(s, &ctx->host);
     }
 
     return rc;
 }
 
 static ngx_int_t
-ngx_stream_parse_server_name_servername(ngx_stream_session_t *s,
+ngx_stream_nginxcraft_servername(ngx_stream_session_t *s,
     ngx_str_t *servername)
 {
     ngx_int_t                    rc;
@@ -144,7 +144,7 @@ ngx_stream_parse_server_name_servername(ngx_stream_session_t *s,
     c = s->connection;
 
     ngx_log_debug1(NGX_LOG_DEBUG_STREAM, c->log, 0,
-                   "parse_server_name server name: \"%V\"", servername);
+                   "nginxcraft server name: \"%V\"", servername);
 
     if (servername->len == 0) {
         return NGX_OK;
@@ -183,9 +183,9 @@ static ngx_int_t
 ngx_stream_servername_host_variable(ngx_stream_session_t *s,
     ngx_variable_value_t *v, uintptr_t data)
 {
-    ngx_stream_parse_server_name_ctx_t  *ctx;
+    ngx_stream_nginxcraft_ctx_t  *ctx;
 
-    ctx = ngx_stream_get_module_ctx(s, ngx_stream_parse_server_name_module);
+    ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
 
     if (ctx == NULL) {
         v->not_found = 1;
@@ -202,11 +202,11 @@ ngx_stream_servername_host_variable(ngx_stream_session_t *s,
 }
 
 static ngx_int_t
-ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf)
+ngx_stream_nginxcraft_add_variables(ngx_conf_t *cf)
 {
     ngx_stream_variable_t  *var, *v;
 
-    for (v = ngx_stream_parse_server_name_vars; v->name.len; v++) {
+    for (v = ngx_stream_nginxcraft_vars; v->name.len; v++) {
         var = ngx_stream_add_variable(cf, &v->name, v->flags);
         if (var == NULL) {
             return NGX_ERROR;
@@ -216,11 +216,11 @@ ngx_stream_parse_server_name_add_variables(ngx_conf_t *cf)
         var->data = v->data;
     }
 
-    return submodule_parse_server_name_add_variables(cf);
+    return submodule_nginxcraft_add_variables(cf);
 }
 
 static ngx_int_t
-ngx_stream_parse_server_name_init(ngx_conf_t *cf)
+ngx_stream_nginxcraft_init(ngx_conf_t *cf)
 {
     ngx_stream_handler_pt        *h;
     ngx_stream_core_main_conf_t  *cmcf;
@@ -232,7 +232,7 @@ ngx_stream_parse_server_name_init(ngx_conf_t *cf)
         return NGX_ERROR;
     }
 
-    *h = ngx_stream_parse_server_name_handler;
+    *h = ngx_stream_nginxcraft_handler;
 
     return NGX_OK;
 }

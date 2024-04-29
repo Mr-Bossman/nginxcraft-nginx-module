@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0+
 /*
- * submodules.c
+ * parse_minecraft.c
  *
  * This module is a simple example of how to parse the server name from a
  * stream session. It is based on the ngx_stream_ssl_preread_module.c module
@@ -17,7 +17,7 @@
 #include <ngx_core.h>
 #include <ngx_stream.h>
 
-#include "ngx_stream_parse_server_name_module.h"
+#include "ngx_stream_nginxcraft_module.h"
 
 #define SEGMENT_BITS 0x7F
 #define CONTINUE_BIT 0x80
@@ -45,12 +45,50 @@ struct minecraft_packet {
     bool valid;
 };
 
+static int parse_handshake(minecraft_packet* packet, mc_string* serv_Address);
+static int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet);
+static mc_string read_mc_string(u_char* buffer, size_t length);
+static VarInt readVarInt(u_char* buffer, size_t length);
+
 ngx_int_t
-submodule_parse_server_name_add_variables(ngx_conf_t *cf)
+submodule_nginxcraft_add_variables(ngx_conf_t *cf)
 {
     (void)cf;
     return NGX_OK;
 }
+
+ngx_int_t ngx_stream_nginxcraft_parse(
+    ngx_stream_nginxcraft_ctx_t *ctx, ngx_buf_t *buf)
+{
+    u_char *p = buf->pos;
+    size_t len = p - buf->last;;
+    minecraft_packet packet;
+    mc_string serv_Address;
+    int ret;
+
+    ret = parse_packet(p, len, &packet);
+    if (ret != 0) {
+        return NGX_ERROR;
+    }
+
+    ret = parse_handshake(&packet, &serv_Address);
+    if (ret != 0) {
+        return NGX_ERROR;
+    }
+
+    ctx->host.data = ngx_pnalloc(ctx->pool, serv_Address.data_length + 1);
+    if (ctx->host.data == NULL) {
+        return NGX_ERROR;
+    }
+    ctx->host.data[serv_Address.data_length] = '\0';
+    ctx->host.len = serv_Address.data_length;
+    (void)ngx_cpymem(ctx->host.data, serv_Address.data, serv_Address.data_length);
+
+    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream nginxcraft: %s",  ctx->host.data);
+// sed -n 's/.*stream nginxcraft: //gp'  /usr/local/nginx/logs/debug.log |  xxd -r -p | hexdump -C
+    return NGX_OK;
+}
+
 
 static VarInt readVarInt(u_char* buffer, size_t length)
 {
@@ -92,7 +130,7 @@ static mc_string read_mc_string(u_char* buffer, size_t length) {
     return ret;
 }
 
-int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet)
+static int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet)
 {
     size_t Length_ID_sz = 0;
     size_t Packet_ID_sz = 0;
@@ -123,7 +161,7 @@ int parse_packet(u_char* buffer, size_t length, minecraft_packet* packet)
     return 0;
 }
 
-int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
+static int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
 {
     u_char *data = packet->data;
     size_t data_length = packet->data_length;
@@ -154,36 +192,4 @@ int parse_handshake(minecraft_packet* packet, mc_string* serv_Address)
         return -1;
     }
     return 0;
-}
-
-ngx_int_t ngx_stream_parse_server_name_parse(
-    ngx_stream_parse_server_name_ctx_t *ctx, ngx_buf_t *buf)
-{
-    u_char *p = buf->pos;
-    size_t len = p - buf->last;;
-    minecraft_packet packet;
-    mc_string serv_Address;
-    int ret;
-
-    ret = parse_packet(p, len, &packet);
-    if (ret != 0) {
-        return NGX_ERROR;
-    }
-
-    ret = parse_handshake(&packet, &serv_Address);
-    if (ret != 0) {
-        return NGX_ERROR;
-    }
-
-    ctx->host.data = ngx_pnalloc(ctx->pool, serv_Address.data_length + 1);
-    if (ctx->host.data == NULL) {
-        return NGX_ERROR;
-    }
-    ctx->host.data[serv_Address.data_length] = '\0';
-    ctx->host.len = serv_Address.data_length;
-    (void)ngx_cpymem(ctx->host.data, serv_Address.data, serv_Address.data_length);
-
-    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "stream parse_server_name: %s",  ctx->host.data);
-// sed -n 's/.*stream parse_server_name: //gp'  /usr/local/nginx/logs/debug.log |  xxd -r -p | hexdump -C
-    return NGX_OK;
 }
