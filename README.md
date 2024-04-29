@@ -11,8 +11,10 @@ Table of Contents
 * [Name](#name)
 * [Synopsis](#synopsis)
 * [Description](#description)
+* [Content Handler Directives](#content-handler-directives)
+    * [nginxcraft](#nginxcraft)
 * [Variables](#variables)
-    * [$servername_host](#servername_host)
+    * [$minecraft_server](#minecraft_server)
 * [Installation](#installation)
 * [Source Repository](#source-repository)
 * [TODO](#todo)
@@ -31,6 +33,36 @@ Description
 
 Content Handler Directives
 ==========================
+
+nginxcraft
+----
+**syntax:** *nginxcraft \[on;off\]*
+
+**default:** *no*
+
+**context:** *server*
+
+**phase:** *content*
+```nginx
+	server {
+		listen		25565 default_server;
+		server_name	_;
+		nginxcraft	on;
+		proxy_pass	mc.hypixel.com:25565;
+	}
+```
+
+[Back to TOC](#table-of-contents)
+
+Variables
+=========
+
+$minecraft_server
+-------------------
+
+This variable holds the minecraft server name.
+
+[Back to TOC](#table-of-contents)
 
 
 Installation
@@ -76,5 +108,8 @@ Available on github at [Mr-Bossman/nginxcraft-nginx-module](https://github.com/M
 
 TODO
 ====
-
-* Fix my life
+* Nginxcraft directive only work on default server, why?
+* Port and version variable
+* Add valgrind test
+* Add VScode format
+* **Fix my life**
