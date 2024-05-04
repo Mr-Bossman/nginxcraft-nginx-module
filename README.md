@@ -46,8 +46,8 @@ nginxcraft
 **phase:** *content*
 ```nginx
 	server {
-		listen		25565 default_server;
-		server_name	_;
+		listen		25565;
+		server_name	local.example.com;
 		nginxcraft	on;
 		proxy_pass	mc.hypixel.com:25565;
 	}
@@ -120,7 +120,6 @@ Available on github at [Mr-Bossman/nginxcraft-nginx-module](https://github.com/M
 
 TODO
 ====
-* Nginxcraft directive only work on default server, why?
 * Port and version variable
 * Attribute the readme template
 * **Fix my life**
