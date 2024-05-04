@@ -78,9 +78,10 @@ static ngx_stream_variable_t  ngx_stream_nginxcraft_vars[] = {
 static void *
 ngx_stream_nginxcraft_create_srv_conf(ngx_conf_t *cf)
 {
-    ngx_stream_nginxcraft_srv_conf_t  *conf;
+    ngx_stream_nginxcraft_srv_conf_t    *conf;
 
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_stream_nginxcraft_srv_conf_t));
+
     if (conf == NULL) {
         return NULL;
     }
@@ -93,9 +94,9 @@ ngx_stream_nginxcraft_create_srv_conf(ngx_conf_t *cf)
 static ngx_int_t
 ngx_stream_nginxcraft_handler(ngx_stream_session_t *s)
 {
-    ngx_int_t                                   rc;
-    ngx_connection_t                           *c;
-    ngx_stream_nginxcraft_ctx_t         *ctx;
+    ngx_int_t                    rc;
+    ngx_connection_t            *c;
+    ngx_stream_nginxcraft_ctx_t *ctx;
 
     c = s->connection;
 
@@ -106,11 +107,14 @@ ngx_stream_nginxcraft_handler(ngx_stream_session_t *s)
     }
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
+
     if (ctx == NULL) {
         ctx = ngx_pcalloc(c->pool, sizeof(ngx_stream_nginxcraft_ctx_t));
+
         if (ctx == NULL) {
             return NGX_ERROR;
         }
+
         ctx->pool = c->pool;
         ctx->log = c->log;
         ngx_stream_set_ctx(s, ctx, ngx_stream_nginxcraft_module);
@@ -133,10 +137,10 @@ static ngx_int_t
 ngx_stream_nginxcraft_servername(ngx_stream_session_t *s,
     ngx_str_t *servername)
 {
-    ngx_int_t                    rc;
-    ngx_str_t                    host;
-    ngx_connection_t            *c;
-    ngx_stream_core_srv_conf_t  *cscf;
+    ngx_int_t                            rc;
+    ngx_str_t                            host;
+    ngx_connection_t                    *c;
+    ngx_stream_core_srv_conf_t          *cscf;
     ngx_stream_nginxcraft_srv_conf_t    *nscf;
 
     c = s->connection;
@@ -191,7 +195,7 @@ static ngx_int_t
 ngx_stream_servername_host_variable(ngx_stream_session_t *s,
     ngx_variable_value_t *v, uintptr_t data)
 {
-    ngx_stream_nginxcraft_ctx_t  *ctx;
+    ngx_stream_nginxcraft_ctx_t *ctx;
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
 
@@ -212,10 +216,12 @@ ngx_stream_servername_host_variable(ngx_stream_session_t *s,
 static ngx_int_t
 ngx_stream_nginxcraft_add_variables(ngx_conf_t *cf)
 {
-    ngx_stream_variable_t  *var, *v;
+    ngx_stream_variable_t   *var, *v;
 
     for (v = ngx_stream_nginxcraft_vars; v->name.len; v++) {
+
         var = ngx_stream_add_variable(cf, &v->name, v->flags);
+
         if (var == NULL) {
             return NGX_ERROR;
         }
@@ -230,12 +236,13 @@ ngx_stream_nginxcraft_add_variables(ngx_conf_t *cf)
 static ngx_int_t
 ngx_stream_nginxcraft_init(ngx_conf_t *cf)
 {
-    ngx_stream_handler_pt        *h;
-    ngx_stream_core_main_conf_t  *cmcf;
+    ngx_stream_handler_pt       *h;
+    ngx_stream_core_main_conf_t *cmcf;
 
     cmcf = ngx_stream_conf_get_module_main_conf(cf, ngx_stream_core_module);
 
     h = ngx_array_push(&cmcf->phases[NGX_STREAM_PREREAD_PHASE].handlers);
+
     if (h == NULL) {
         return NGX_ERROR;
     }
