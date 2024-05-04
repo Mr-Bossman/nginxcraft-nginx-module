@@ -16,6 +16,7 @@ Table of Contents
 * [Variables](#variables)
     * [$minecraft_server](#minecraft_server)
 * [Installation](#installation)
+* [Compatibility](#compatibility)
 * [Source Repository](#source-repository)
 * [TODO](#todo)
 
@@ -69,7 +70,7 @@ Installation
 ============
 
 Grab the nginx source code from [nginx.org](http://nginx.org/), for example,
-the version 1.25.5, and then build the source with this module:
+the version 1.25.5 (see [nginx compatibility](#compatibility)), and then build the source with this module:
 
 ```bash
 
@@ -99,6 +100,17 @@ load_module /path/to/modules/ngx_stream_nginxcraft_module.so;
 
 [Back to TOC](#table-of-contents)
 
+Compatibility
+=============
+
+The following versions of Nginx should work with this module:
+
+* **1.25.5**                       (last tested: 1.25.5)
+
+NGINX versions older than 1.25.5 will *not* work due to the lack of support for multiple "stream" server directives.
+
+[Back to TOC](#table-of-contents)
+
 Source Repository
 =================
 
@@ -110,6 +122,5 @@ TODO
 ====
 * Nginxcraft directive only work on default server, why?
 * Port and version variable
-* Add valgrind test
-* Add VScode format
+* Attribute the readme template
 * **Fix my life**
