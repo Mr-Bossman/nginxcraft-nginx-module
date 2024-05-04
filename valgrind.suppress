@@ -1,0 +1,103 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:ngx_alloc
+   fun:ngx_save_argv
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:ngx_alloc
+   fun:ngx_init_setproctitle
+   fun:ngx_os_init
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:ngx_alloc
+   fun:ngx_palloc_large
+   fun:ngx_palloc
+   fun:ngx_pcalloc
+   fun:ngx_hash_keys_array_init
+   fun:ngx_stream_variables_add_core_vars
+   fun:ngx_stream_core_preconfiguration
+   fun:ngx_stream_block
+   fun:ngx_conf_handler
+   fun:ngx_conf_parse
+   fun:ngx_init_cycle
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:ngx_alloc
+   fun:ngx_palloc_large
+   fun:ngx_palloc
+   fun:ngx_pcalloc
+   fun:ngx_stream_upstream_init_round_robin
+   fun:ngx_stream_upstream_init_main_conf
+   fun:ngx_stream_block
+   fun:ngx_conf_handler
+   fun:ngx_conf_parse
+   fun:ngx_init_cycle
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:memalign
+   fun:posix_memalign
+   fun:ngx_memalign
+   fun:ngx_create_pool
+   fun:ngx_init_cycle
+   fun:main
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:memalign
+   fun:posix_memalign
+   fun:ngx_memalign
+   fun:ngx_palloc_block
+   fun:ngx_palloc_small
+   fun:ngx_palloc
+   fun:ngx_array_push
+   fun:ngx_hash_add_key
+   fun:ngx_stream_add_variable
+   fun:ngx_stream_variables_add_core_vars
+   fun:ngx_stream_core_preconfiguration
+   fun:ngx_stream_block
+   fun:ngx_conf_handler
+   fun:ngx_conf_parse
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:memalign
+   fun:posix_memalign
+   fun:ngx_memalign
+   fun:ngx_palloc_block
+   fun:ngx_palloc_small
+   fun:ngx_palloc
+   fun:ngx_hash_init
+   fun:ngx_stream_server_names
+   fun:ngx_stream_optimize_servers
+   fun:ngx_stream_block
+   fun:ngx_conf_handler
+   fun:ngx_conf_parse
+   fun:ngx_init_cycle
+   fun:main
+}

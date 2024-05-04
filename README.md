@@ -94,7 +94,7 @@ Then you can explicitly load the module in your `nginx.conf` via the [load_modul
 directive, for example,
 
 ```nginx
-load_module /path/to/modules/nngx_stream_nginxcraft_module.so;
+load_module /path/to/modules/ngx_stream_nginxcraft_module.so;
 ```
 
 [Back to TOC](#table-of-contents)
