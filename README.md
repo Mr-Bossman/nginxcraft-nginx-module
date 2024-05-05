@@ -1,7 +1,7 @@
 Name
 ====
 
-**nginxcraft-nginx-module** - Nginx module to Proxy Minecraft servers
+**nginxcraft-nginx-module** - Nginx module to reverse proxy Minecraft servers on layer 7
 
 *This module is not distributed with the Nginx source.* See [the installation instructions](#installation).
 
@@ -122,4 +122,6 @@ TODO
 ====
 * Port and version variable
 * Attribute the readme template
+* minecraft compressed format? no compression is negotiated later, note this in readme
+* return minecraft header?
 * **Fix my life**

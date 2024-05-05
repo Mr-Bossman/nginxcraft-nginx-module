@@ -27,6 +27,7 @@ typedef struct {
     ngx_str_t        host;
     ngx_log_t       *log;
     ngx_pool_t      *pool;
+    void            *variables;
 } ngx_stream_nginxcraft_ctx_t;
 
 extern ngx_module_t  ngx_stream_nginxcraft_module;
