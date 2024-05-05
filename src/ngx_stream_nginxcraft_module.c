@@ -199,14 +199,16 @@ ngx_stream_servername_host_variable(ngx_stream_session_t *s,
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
 
-    if (ctx == NULL) {
-        v->not_found = 1;
-        return NGX_OK;
-    }
-
     v->valid = 1;
     v->no_cacheable = 0;
     v->not_found = 0;
+
+    if (ctx == NULL || ctx->host.len == 0) {
+        v->len = 0;
+        v->data = NULL;
+        return NGX_OK;
+    }
+
     v->len = ctx->host.len;
     v->data = ctx->host.data;
 
