@@ -79,7 +79,7 @@ the version 1.25.5 (see [nginx compatibility](#compatibility)), and then build t
  $ cd nginx-1.25.5/
 c
  # Here we assume you would install you nginx under /usr/local/nginx/.
- $ ./configure --prefix=/usr/local/nginx/ \
+ $ ./configure --prefix=/usr/local/nginx/ --with-stream \
      	 --add-module=/path/to/nginxcraft-nginx-module
 
  $ make -j$(nproc)
