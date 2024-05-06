@@ -19,7 +19,8 @@
 #include <ngx_stream.h>
 
 typedef struct {
-    ngx_flag_t       enabled;
+    ngx_flag_t                   enabled;
+    ngx_stream_complex_value_t   text;
 } ngx_stream_nginxcraft_srv_conf_t;
 
 
@@ -28,6 +29,7 @@ typedef struct {
     ngx_log_t       *log;
     ngx_pool_t      *pool;
     void            *variables;
+    ngx_chain_t     *out;
 } ngx_stream_nginxcraft_ctx_t;
 
 extern ngx_module_t  ngx_stream_nginxcraft_module;

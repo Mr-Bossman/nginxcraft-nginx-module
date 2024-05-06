@@ -3,10 +3,12 @@ ngx_addon_name=ngx_stream_nginxcraft_module
 ECHO_SRCS="                                                                 \
         $ngx_addon_dir/src/ngx_stream_nginxcraft_module.c                   \
         $ngx_addon_dir/src/parse_minecraft.c                                \
+        $ngx_addon_dir/src/minecraft_funcs.c                                \
         "
 
 ECHO_DEPS="                                                                 \
         $ngx_addon_dir/src/ngx_stream_nginxcraft_module.h                   \
+        $ngx_addon_dir/src/minecraft_funcs.h                                \
         "
 
 if [ -n "$ngx_module_link" ]; then
