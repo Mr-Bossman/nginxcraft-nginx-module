@@ -58,6 +58,12 @@ ngx_int_t parse_packet(const u_char* buffer, size_t length, minecraft_packet* pa
 mc_string read_mc_string(const u_char* buffer, size_t length);
 VarInt readVarInt(const u_char* buffer, size_t length);
 
+size_t get_VarInt_size(int32_t value);
+void writeVarInt(u_char* buffer, int32_t value);
+
+size_t get_disconnect_packet_size(size_t length);
+void create_disconnect_packet(u_char* buffer, const u_char* text, size_t length);
+
 ngx_int_t mc_str2ngx_str(ngx_str_t* ret, size_t sz, const mc_string mc_str);
 
 #endif /* MINECRAFT_FUNCS_H */

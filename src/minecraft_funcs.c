@@ -62,6 +62,44 @@ VarInt readVarInt(const u_char* buffer, size_t length)
     return ret;
 }
 
+size_t get_VarInt_size(int32_t value)
+{
+    size_t   ind = 0;
+
+    //TODO: there must be a better way to do this
+    if (value == 0) {
+        return 1;
+    }
+
+    while (true) {
+        if((value & ~CONTINUE_BIT) == 0) {
+            return ind;
+        }
+
+        value >>= 7;
+        ind++;
+    }
+
+    return ind;
+}
+
+void writeVarInt(u_char* buffer, int32_t value)
+{
+    size_t   ind = 0;
+
+    while (true) {
+        if((value & ~SEGMENT_BITS) == 0) {
+                buffer[ind] = value;
+            return;
+        }
+
+        buffer[ind++] = (value & SEGMENT_BITS) | CONTINUE_BIT;
+        value >>= 7;
+    }
+
+    return;
+}
+
 mc_string read_mc_string(const u_char* buffer, size_t length) {
     mc_string    ret = {NULL, 0, true};
     VarInt       stringLength = readVarInt(buffer, length);
@@ -174,4 +212,30 @@ ngx_int_t parse_handshake(const minecraft_packet* packet, minecraft_handshake* h
     handshake->valid = true;
 
     return NGX_OK;
+}
+
+size_t get_disconnect_packet_size(size_t length)
+{
+    size_t   length_len, ID_len, data_len;
+    data_len = get_VarInt_size(length) + length;
+    ID_len = get_VarInt_size(0x00);
+    length_len = get_VarInt_size(data_len + ID_len);
+
+    return length_len + ID_len + data_len;
+
+}
+
+void create_disconnect_packet(u_char* buffer, const u_char* text, size_t length)
+{
+    size_t   length_len, ID_len, data_len, mcstr_vint_len;
+
+    mcstr_vint_len = get_VarInt_size(length);
+    data_len = mcstr_vint_len + length;
+    ID_len = get_VarInt_size(0x00);
+    length_len = get_VarInt_size(data_len + ID_len);
+
+    writeVarInt(buffer, data_len + ID_len);
+    writeVarInt(buffer + length_len, 0x00);
+    writeVarInt(buffer + length_len + ID_len, length);
+    (void)ngx_cpymem(buffer + length_len + ID_len + mcstr_vint_len, text, length);
 }

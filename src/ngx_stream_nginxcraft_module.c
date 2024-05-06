@@ -16,6 +16,7 @@
 #include <ngx_stream.h>
 
 #include "ngx_stream_nginxcraft_module.h"
+#include "ngx_stream_nginxcraft_return_module.h"
 
 static void *ngx_stream_nginxcraft_create_srv_conf(ngx_conf_t *cf);
 static ngx_int_t ngx_stream_nginxcraft_servername(ngx_stream_session_t *s,
@@ -33,6 +34,13 @@ static ngx_command_t  ngx_stream_nginxcraft_commands[] = {
       ngx_conf_set_flag_slot,
       NGX_STREAM_SRV_CONF_OFFSET,
       offsetof(ngx_stream_nginxcraft_srv_conf_t, enabled),
+      NULL },
+
+    { ngx_string("nginxcraft_return"),
+      NGX_STREAM_SRV_CONF|NGX_CONF_TAKE1,
+      ngx_stream_nginxcraft_return,
+      NGX_STREAM_SRV_CONF_OFFSET,
+      0,
       NULL },
 
       ngx_null_command
