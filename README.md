@@ -13,8 +13,11 @@ Table of Contents
 * [Description](#description)
 * [Content Handler Directives](#content-handler-directives)
     * [nginxcraft](#nginxcraft)
+    * [nginxcraft_return](#nginxcraft_return)
 * [Variables](#variables)
     * [$minecraft_server](#minecraft_server)
+    * [$minecraft_version](#minecraft_version)
+    * [$minecraft_port](#minecraft_port)
 * [Installation](#installation)
 * [Compatibility](#compatibility)
 * [Source Repository](#source-repository)
@@ -24,11 +27,63 @@ Table of Contents
 Synopsis
 ========
 
+```nginx
+
+stream {
+	log_format	main	'$remote_addr "$server_name" $minecraft_server $new_server "$minecraft_port" $minecraft_version';
+	access_log	logs/access.log	main;
+	error_log	logs/debug.log	debug;
+
+	upstream google {
+		server	google.com:80;
+	}
+
+	map $minecraft_server $new_server {
+		# Send to "disconnect" server if not in list
+		default	unix:/tmp/nginx_disconnect.sock;
+		""		google; # for when packet doesn't match a minecraft server
+	}
+
+	server {
+		# Hacky way to map to another server
+		listen				unix:/tmp/nginx_disconnect.sock;
+		server_name			disconnect;
+		nginxcraft_return	"{'color':'red','text':'You can not connect from: $minecraft_server'}";
+	}
+
+	server {
+		# Will match if no other server matches
+		listen		25565 default_server;
+		server_name	_;
+		proxy_pass	$new_server;
+	}
+
+	server {
+		# Will match if url matches because nginxcraft is on
+		listen		25565;
+		server_name	local.example.com;
+		nginxcraft	on;
+		proxy_pass	mc.hypixel.net:25565;
+	}
+
+	server {
+		# Will not match because nginxcraft is off
+		listen		25565;
+		server_name	local.sample.com;
+		proxy_pass	mc.hypixel.net:25565;
+	}
+}
+```
+
 [Back to TOC](#table-of-contents)
 
 Description
 ===========
 
+**Important notes**:
+
+1. Minecraft has compressed format, documented [here](https://wiki.vg/Protocol#With_compression),
+	but is [optionally requested](https://wiki.vg/Protocol#Disconnect_.28login.29) by the server, so it is unnecessary to consider.
 
 [Back to TOC](#table-of-contents)
 
@@ -43,7 +98,8 @@ nginxcraft
 
 **context:** *server*
 
-**phase:** *content*
+**phase:** *preread*
+
 ```nginx
 	server {
 		listen		25565;
@@ -55,16 +111,56 @@ nginxcraft
 
 [Back to TOC](#table-of-contents)
 
+nginxcraft_return
+----
+**syntax:** *nginxcraft_return  &lt;string&gt;*
+
+**default:** *no*
+
+**context:** *server*
+
+**phase:** *content*
+
+Sends string in to client encoded in Minecraft's [Disconnect Packet](https://wiki.vg/Protocol#Disconnect_.28login.29) format
+then terminates the connection.
+
+```nginx
+	server {
+		listen		25565;
+		server_name	local.example.com;
+		nginxcraft_return	"{'text':'You can not connect from: $minecraft_server'}";
+	}
+```
+
+[Back to TOC](#table-of-contents)
+
 Variables
 =========
 
 $minecraft_server
 -------------------
 
-This variable holds the minecraft server name.
+This variable holds the Minecraft server name.
 
 [Back to TOC](#table-of-contents)
 
+$minecraft_version
+-------------------
+
+This variable holds the Minecraft client verison.
+
+[List of protocol version numbers](https://wiki.vg/Protocol_version_numbers)
+
+[Back to TOC](#table-of-contents)
+
+$minecraft_port
+-------------------
+
+This variable holds the port used to connect in the handshake packet.
+
+[Handshake packet reference](https://wiki.vg/Protocol#Handshake)
+
+[Back to TOC](#table-of-contents)
 
 Installation
 ============
@@ -120,7 +216,8 @@ Available on github at [Mr-Bossman/nginxcraft-nginx-module](https://github.com/M
 
 TODO
 ====
+* Finish [Synopsis](#synopsis) and [Description](#description)
+* Should we be using PREREAD phase?
 * Attribute the readme template
-* minecraft compressed format? no compression is negotiated later, note this in readme
-* fix ngx_str_snprintf
+* Fix ngx_str_snprintf
 * **Fix my life**
