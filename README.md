@@ -120,8 +120,7 @@ Available on github at [Mr-Bossman/nginxcraft-nginx-module](https://github.com/M
 
 TODO
 ====
-* Port and version variable
 * Attribute the readme template
 * minecraft compressed format? no compression is negotiated later, note this in readme
-* return minecraft header?
+* fix ngx_str_snprintf
 * **Fix my life**
