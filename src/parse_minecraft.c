@@ -171,7 +171,7 @@ ngx_int_t ngx_stream_nginxcraft_parse(
     ngx_snprint_uint(&vars->minecraft_port, 6, handshake.serv_Port);
     ngx_snprint_int(&vars->minecraft_version, 11, handshake.protocolVersion);
 
-    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "nginxcraft parse: %s",  ctx->host.data);
+    ngx_log_debug(NGX_LOG_DEBUG_STREAM, ctx->log, 0, "nginxcraft parse: %V",  &ctx->host);
 
     return NGX_OK;
 }
