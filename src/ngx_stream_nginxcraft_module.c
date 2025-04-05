@@ -24,10 +24,10 @@ static ngx_int_t ngx_stream_nginxcraft_servername(ngx_stream_session_t *s,
 static ngx_int_t ngx_stream_nginxcraft_handler(ngx_stream_session_t *s);
 static ngx_int_t ngx_stream_nginxcraft_init(ngx_conf_t *cf);
 static ngx_int_t ngx_stream_nginxcraft_add_variables(ngx_conf_t *cf);
-static ngx_int_t ngx_stream_servername_host_variable(
-    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data);
+static ngx_int_t ngx_stream_servername_host_variable(ngx_stream_session_t *s,
+    ngx_stream_variable_value_t *v, uintptr_t data);
 
-static ngx_command_t  ngx_stream_nginxcraft_commands[] = {
+static ngx_command_t ngx_stream_nginxcraft_commands[] = {
 
     { ngx_string("nginxcraft"),
       NGX_STREAM_MAIN_CONF|NGX_STREAM_SRV_CONF|NGX_CONF_FLAG,
@@ -47,7 +47,7 @@ static ngx_command_t  ngx_stream_nginxcraft_commands[] = {
 };
 
 
-static ngx_stream_module_t  ngx_stream_nginxcraft_module_ctx = {
+static ngx_stream_module_t ngx_stream_nginxcraft_module_ctx = {
     ngx_stream_nginxcraft_add_variables,     /* preconfiguration */
     ngx_stream_nginxcraft_init,              /* postconfiguration */
 
@@ -59,7 +59,7 @@ static ngx_stream_module_t  ngx_stream_nginxcraft_module_ctx = {
 };
 
 
-ngx_module_t  ngx_stream_nginxcraft_module = {
+ngx_module_t ngx_stream_nginxcraft_module = {
     NGX_MODULE_V1,
     &ngx_stream_nginxcraft_module_ctx,     /* module context */
     ngx_stream_nginxcraft_commands,        /* module directives */
@@ -74,7 +74,7 @@ ngx_module_t  ngx_stream_nginxcraft_module = {
     NGX_MODULE_V1_PADDING
 };
 
-static ngx_stream_variable_t  ngx_stream_nginxcraft_vars[] = {
+static ngx_stream_variable_t ngx_stream_nginxcraft_vars[] = {
 
     { ngx_string("minecraft_server"), NULL,
       ngx_stream_servername_host_variable, 0, 0, 0 },

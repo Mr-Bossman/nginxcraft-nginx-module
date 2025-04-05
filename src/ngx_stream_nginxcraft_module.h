@@ -32,10 +32,9 @@ typedef struct {
     ngx_chain_t     *out;
 } ngx_stream_nginxcraft_ctx_t;
 
-extern ngx_module_t  ngx_stream_nginxcraft_module;
+extern ngx_module_t ngx_stream_nginxcraft_module;
 
-ngx_int_t ngx_stream_nginxcraft_parse(
-    ngx_stream_nginxcraft_ctx_t *ctx, ngx_buf_t *buf);
+ngx_int_t ngx_stream_nginxcraft_parse(ngx_stream_nginxcraft_ctx_t *ctx, ngx_buf_t *buf);
 ngx_int_t submodule_nginxcraft_add_variables(ngx_conf_t *cf);
 
 #endif /* NGX_STREAM_NGINXCRAFT_MODULE_H */

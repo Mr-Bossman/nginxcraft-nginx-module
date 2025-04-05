@@ -1,2 +1,2 @@
-ngx_stream_nginxcraft_module.so
+*.so
 nginx/*

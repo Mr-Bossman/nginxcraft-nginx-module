@@ -26,12 +26,12 @@
 
 static ngx_int_t ngx_str_snprintf(ngx_str_t* ret, size_t sz, const char *fmt, ...);
 
-static ngx_int_t minecraft_port_variable(
-    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data);
-static ngx_int_t minecraft_version_variable(
-    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data);
+static ngx_int_t minecraft_port_variable(ngx_stream_session_t *s, ngx_stream_variable_value_t *v,
+    uintptr_t data);
+static ngx_int_t minecraft_version_variable(ngx_stream_session_t *s,
+    ngx_stream_variable_value_t *v, uintptr_t data);
 
-static ngx_stream_variable_t  nginxcraft_vars[] = {
+static ngx_stream_variable_t nginxcraft_vars[] = {
 
     { ngx_string("minecraft_port"), NULL,
       minecraft_port_variable, 0, 0, 0 },
@@ -62,11 +62,13 @@ submodule_nginxcraft_add_variables(ngx_conf_t *cf)
     return NGX_OK;
 }
 
-static ngx_int_t minecraft_port_variable(
-    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data)
+static ngx_int_t
+minecraft_port_variable(ngx_stream_session_t *s,
+    ngx_stream_variable_value_t *v, uintptr_t data)
 {
     ngx_stream_nginxcraft_ctx_t *ctx;
     nginxcraft_var              *vars;
+
     (void)data;
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
@@ -88,11 +90,13 @@ static ngx_int_t minecraft_port_variable(
     return NGX_OK;
 }
 
-static ngx_int_t minecraft_version_variable(
-    ngx_stream_session_t *s, ngx_stream_variable_value_t *v, uintptr_t data)
+static ngx_int_t
+minecraft_version_variable(ngx_stream_session_t *s,
+    ngx_stream_variable_value_t *v, uintptr_t data)
 {
     ngx_stream_nginxcraft_ctx_t *ctx;
     nginxcraft_var              *vars;
+
     (void)data;
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
@@ -114,8 +118,8 @@ static ngx_int_t minecraft_version_variable(
     return NGX_OK;
 }
 
-ngx_int_t ngx_stream_nginxcraft_parse(
-    ngx_stream_nginxcraft_ctx_t *ctx, ngx_buf_t *buf)
+ngx_int_t
+ngx_stream_nginxcraft_parse(ngx_stream_nginxcraft_ctx_t *ctx, ngx_buf_t *buf)
 {
     u_char              *p = buf->pos;
     size_t               len = p - buf->last;;
@@ -177,7 +181,8 @@ ngx_int_t ngx_stream_nginxcraft_parse(
 }
 
 
-static ngx_int_t ngx_str_snprintf(ngx_str_t* ret, size_t sz, const char *fmt, ...)
+static ngx_int_t
+ngx_str_snprintf(ngx_str_t* ret, size_t sz, const char *fmt, ...)
 {
     //u_char   *p;
     va_list   args;
@@ -187,6 +192,7 @@ static ngx_int_t ngx_str_snprintf(ngx_str_t* ret, size_t sz, const char *fmt, ..
     }
 
     va_start(args, fmt);
+    //TODO: use ngx_vsnprintf
     //p = ngx_vsnprintf(ret->data, sz, fmt, args);
     (void)vsnprintf((char*)ret->data, sz, fmt, args);
     ret->len = strnlen((char*)ret->data, sz);

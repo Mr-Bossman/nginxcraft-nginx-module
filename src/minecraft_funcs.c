@@ -17,9 +17,10 @@
 #define SEGMENT_BITS 0x7F
 #define CONTINUE_BIT 0x80
 
-ngx_int_t mc_str2ngx_str(ngx_str_t* ret, size_t sz, const mc_string mc_str)
+ngx_int_t
+mc_str2ngx_str(ngx_str_t* ret, size_t sz, const mc_string mc_str)
 {
-    if(sz < mc_str.data_length || ret->data == NULL) {
+    if (sz < mc_str.data_length || ret->data == NULL) {
         return NGX_ERROR;
     }
 
@@ -29,7 +30,8 @@ ngx_int_t mc_str2ngx_str(ngx_str_t* ret, size_t sz, const mc_string mc_str)
     return NGX_OK;
 }
 
-VarInt readVarInt(const u_char* buffer, size_t length)
+VarInt
+readVarInt(const u_char* buffer, size_t length)
 {
     VarInt   ret = {0, 0, true};
     size_t   ind = 0;
@@ -62,7 +64,8 @@ VarInt readVarInt(const u_char* buffer, size_t length)
     return ret;
 }
 
-size_t get_VarInt_size(int32_t value)
+size_t
+get_VarInt_size(int32_t value)
 {
     size_t   ind = 0;
 
@@ -72,7 +75,7 @@ size_t get_VarInt_size(int32_t value)
     }
 
     while (true) {
-        if((value & ~CONTINUE_BIT) == 0) {
+        if ((value & ~CONTINUE_BIT) == 0) {
             return ind;
         }
 
@@ -83,13 +86,14 @@ size_t get_VarInt_size(int32_t value)
     return ind;
 }
 
-void writeVarInt(u_char* buffer, int32_t value)
+void
+writeVarInt(u_char* buffer, int32_t value)
 {
     size_t   ind = 0;
 
     while (true) {
-        if((value & ~SEGMENT_BITS) == 0) {
-                buffer[ind] = value;
+        if ((value & ~SEGMENT_BITS) == 0) {
+            buffer[ind] = value;
             return;
         }
 
@@ -100,7 +104,9 @@ void writeVarInt(u_char* buffer, int32_t value)
     return;
 }
 
-mc_string read_mc_string(const u_char* buffer, size_t length) {
+mc_string
+read_mc_string(const u_char* buffer, size_t length)
+{
     mc_string    ret = {NULL, 0, true};
     VarInt       stringLength = readVarInt(buffer, length);
 
@@ -115,7 +121,8 @@ mc_string read_mc_string(const u_char* buffer, size_t length) {
     return ret;
 }
 
-ngx_int_t parse_packet(const u_char* buffer, size_t length, minecraft_packet* packet)
+ngx_int_t
+parse_packet(const u_char* buffer, size_t length, minecraft_packet* packet)
 {
     size_t   Length_ID_sz = 0;
     size_t   Packet_ID_sz = 0;
@@ -144,7 +151,8 @@ ngx_int_t parse_packet(const u_char* buffer, size_t length, minecraft_packet* pa
     return NGX_OK;
 }
 
-ngx_int_t parse_handshake(const minecraft_packet* packet, minecraft_handshake* handshake)
+ngx_int_t
+parse_handshake(const minecraft_packet* packet, minecraft_handshake* handshake)
 {
     const u_char    *data = packet->data;
     size_t           data_length = packet->data_length;
@@ -186,7 +194,7 @@ ngx_int_t parse_handshake(const minecraft_packet* packet, minecraft_handshake* h
     data += serv_Address_sz;
     data_length -= serv_Address_sz;
 
-    if(2 > data_length) {
+    if (2 > data_length) {
         return NGX_ERROR;
     }
 
@@ -214,9 +222,11 @@ ngx_int_t parse_handshake(const minecraft_packet* packet, minecraft_handshake* h
     return NGX_OK;
 }
 
-size_t get_disconnect_packet_size(size_t length)
+size_t
+get_disconnect_packet_size(size_t length)
 {
     size_t   length_len, ID_len, data_len;
+
     data_len = get_VarInt_size(length) + length;
     ID_len = get_VarInt_size(0x00);
     length_len = get_VarInt_size(data_len + ID_len);
@@ -225,7 +235,8 @@ size_t get_disconnect_packet_size(size_t length)
 
 }
 
-void create_disconnect_packet(u_char* buffer, const u_char* text, size_t length)
+void
+create_disconnect_packet(u_char* buffer, const u_char* text, size_t length)
 {
     size_t   length_len, ID_len, data_len, mcstr_vint_len;
 
