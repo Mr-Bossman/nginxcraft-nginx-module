@@ -115,6 +115,13 @@ read_mc_string(const u_char* buffer, size_t length)
         return ret;
     }
 
+    if (stringLength.value < 0
+        || stringLength.length + (size_t) stringLength.value > length)
+    {
+        ret.valid = false;
+        return ret;
+    }
+
     ret.data = buffer + stringLength.length;
     ret.data_length = stringLength.value;
 
