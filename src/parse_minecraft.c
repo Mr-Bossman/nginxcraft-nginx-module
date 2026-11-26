@@ -72,7 +72,7 @@ minecraft_port_variable(ngx_stream_session_t *s,
     (void)data;
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
-    vars = (nginxcraft_var *)ctx->variables;
+    vars = ctx ? (nginxcraft_var *) ctx->variables : NULL;
 
     v->valid = 1;
     v->no_cacheable = 0;
@@ -100,7 +100,7 @@ minecraft_version_variable(ngx_stream_session_t *s,
     (void)data;
 
     ctx = ngx_stream_get_module_ctx(s, ngx_stream_nginxcraft_module);
-    vars = (nginxcraft_var *)ctx->variables;
+    vars = ctx ? (nginxcraft_var *) ctx->variables : NULL;
 
     v->valid = 1;
     v->no_cacheable = 0;
