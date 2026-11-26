@@ -30,7 +30,7 @@ jobs:
       - name: setup prerequisites
         run: |
           sudo apt update
-          sudo apt install wget curl tar build-essential libpcre3-dev zlib1g-dev
+          sudo apt install wget curl tar build-essential libpcre2-dev zlib1g-dev
 
       - name: build
         run: |
